@@ -43,3 +43,10 @@
 - Added draggable Shadow DOM control panel.
 - Added restore, minimize, and close controls.
 - Added installation and limitations documentation.
+
+
+## 1.4.0
+- Added an optional Cloudflare Worker image proxy fallback for external HTTPS images blocked by browser CORS.
+- Added an allowlisted Worker template and setup guide under `cloudflare-worker/`.
+- Fixed the image mode selector markup and made image pixel processing asynchronous.
+- The proxy is not open: configure exact hostnames in `ALLOWED_HOSTS`; redirects are not followed and image responses are limited to 8 MiB.
