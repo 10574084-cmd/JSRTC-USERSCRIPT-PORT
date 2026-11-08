@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.0 - 2026-11-08
+
+- Added IMAGE GLITCH for image and SVG image elements.
+- Added VIDEO GLITCH for HTML5 video elements.
+- Added GAME GLITCH for canvas-based game render surfaces.
+- Added ALL / CHAOS to run every supported visual mode.
+- Increased the saved-element limit and documented the visual-only behavior.
+- Added compatibility notes for media and canvas rendering.
+
 ## 1.0.0 - 2026-11-08
 
 - First public userscript version.
