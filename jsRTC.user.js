@@ -38,6 +38,7 @@
     let dragging = false;
     let dragOffsetX = 0;
     let dragOffsetY = 0;
+    let proxyEndpoint = '';
 
     // Store original attributes before the first change to each element.
     const snapshots = new Map();
@@ -284,8 +285,19 @@
         if (!ctx) return false;
 
         try {
-            ctx.drawImage(image, 0, 0, w, h);
+            let bitmap = null;
+            if (proxyEndpoint) {
+                const proxyUrl = new URL(proxyEndpoint);
+                proxyUrl.searchParams.set('url', image.currentSrc || image.src);
+                const response = await fetch(proxyUrl.href, { credentials: 'omit' });
+                if (!response.ok) throw new Error('Proxy HTTP ' + response.status);
+                bitmap = await createImageBitmap(await response.blob());
+                ctx.drawImage(bitmap, 0, 0, w, h);
+            } else {
+                ctx.drawImage(image, 0, 0, w, h);
+            }
             const frame = ctx.getImageData(0, 0, w, h);
+            if (bitmap) bitmap.close();
             const data = frame.data;
             const original = new Uint8ClampedArray(data);
             const rand = max => Math.floor(Math.random() * max);
@@ -630,6 +642,9 @@
                             '<option value="ALL">ALL / CHAOS — habilitar todo</option>' +
                         '</select>' +
                     '</label>' +
+                    '<label class="field"><span class="fieldtop">CLOUDFLARE IMAGE PROXY URL</span>' +
+                        '<input id="proxy" type="url" placeholder="https://your-worker.workers.dev/" autocomplete="url">' +
+                    '</label>' +
                     '<label class="field"><span class="fieldtop"><span>INTENSITY</span><span class="value" id="intensity-value">4</span></span>' +
                         '<input id="intensity" type="range" min="1" max="10" value="4">' +
                     '</label>' +
@@ -642,7 +657,7 @@
                         '<button class="restore" id="restore" type="button">RESTORE ORIGINAL PAGE</button>' +
                     '</div>' +
                     '<div class="status" id="status" role="status" aria-live="polite">Listo. Elige un modo y pulsa BLAST ONCE.</div>' +
-                    '<div class="note">Efectos locales: altera píxeles de imágenes en pantalla y guarda sus direcciones originales para RESTORE. No sobrescribe archivos del servidor. Algunas imágenes externas bloquean la lectura por CORS.</div>' +
+                    '<div class="note">Con proxy configurado, las imágenes se cargan desde tu Worker allowlisted. Despliega cloudflare-worker/image-proxy.js y define ALLOWED_HOSTS.</div>' +
                 '</div>' +
             '</section>';
 
@@ -654,10 +669,20 @@
 
         const $ = (selector) => ui.querySelector(selector);
         const modeInput = $('#mode');
+        const proxyInput = $('#proxy');
         const intensityInput = $('#intensity');
         const delayInput = $('#delay');
         const startButton = $('#start');
         const header = $('#drag');
+
+        proxyInput.addEventListener('change', () => {
+            try {
+                const value = proxyInput.value.trim();
+                proxyEndpoint = value ? new URL(value).href : '';
+                if (proxyEndpoint && new URL(proxyEndpoint).protocol !== 'https:') throw new Error('HTTPS required');
+                setStatus(proxyEndpoint ? 'Proxy activo: las imágenes se obtendrán mediante tu Worker.' : 'Proxy desactivado.');
+            } catch (_) { proxyEndpoint = ''; proxyInput.value = ''; setStatus('URL inválida: usa la URL HTTPS del Worker.'); }
+        });
 
         modeInput.addEventListener('change', () => {
             stop();
