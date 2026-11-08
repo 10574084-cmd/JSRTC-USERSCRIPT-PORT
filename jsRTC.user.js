@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         jsRTC - Real-Time Corruptor (Web)
 // @namespace    https://github.com/10574084-cmd/JSRTC-USERSCRIPT-PORT
-// @version      1.4.0
+// @version      1.4.1
 // @description  Reversible visual effects for webpages, media and canvas games, plus page growth.
 // @author       10574084-cmd
 // @match        http://*/*
@@ -19,7 +19,7 @@
     // Paste your deployed Cloudflare Worker URL here. Leave empty to disable the proxy.
     const PROXY_URL = '';
 
-    const GLOBAL_KEY = '__JSRTC_WEB_PORT_140__';
+    const GLOBAL_KEY = '__JSRTC_WEB_PORT_141__';
     if (window[GLOBAL_KEY]) return;
     window[GLOBAL_KEY] = true;
 
@@ -632,7 +632,7 @@
             '<section class="panel" aria-label="jsRTC control panel">' +
                 '<header class="head" id="drag">' +
                     '<span class="brand">jsRTC WEB</span>' +
-                    '<span class="version">v1.4.0</span>' +
+                    '<span class="version">v1.4.1</span>' +
                     '<button class="icon" id="minimize" type="button" title="Minimizar" aria-label="Minimizar">−</button>' +
                     '<button class="icon" id="close" type="button" title="Cerrar" aria-label="Cerrar">×</button>' +
                 '</header>' +
