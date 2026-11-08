@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         jsRTC - Real-Time Corruptor (Web)
 // @namespace    https://github.com/10574084-cmd/JSRTC-USERSCRIPT-PORT
-// @version      1.3.0
+// @version      1.4.0
 // @description  Reversible visual effects for webpages, media and canvas games, plus page growth.
 // @author       10574084-cmd
 // @match        http://*/*
@@ -16,7 +16,7 @@
 (() => {
     'use strict';
 
-    const GLOBAL_KEY = '__JSRTC_WEB_PORT_130__';
+    const GLOBAL_KEY = '__JSRTC_WEB_PORT_140__';
     if (window[GLOBAL_KEY]) return;
     window[GLOBAL_KEY] = true;
 
@@ -606,7 +606,7 @@
             '<section class="panel" aria-label="jsRTC control panel">' +
                 '<header class="head" id="drag">' +
                     '<span class="brand">jsRTC WEB</span>' +
-                    '<span class="version">v1.3.0</span>' +
+                    '<span class="version">v1.4.0</span>' +
                     '<button class="icon" id="minimize" type="button" title="Minimizar" aria-label="Minimizar">−</button>' +
                     '<button class="icon" id="close" type="button" title="Cerrar" aria-label="Cerrar">×</button>' +
                 '</header>' +
@@ -624,7 +624,7 @@
                             '<option value="NOISE">PIXEL NOISE — ruido fuerte</option>' +
                             '<option value="PALETTE">PALETTE CRUSH — pocos colores</option>' +
                             '<option value="ALPHA">ALPHA EATER — transparencia</option>' +
-                            '<option value="IMAGE_ALL">IMAGE CHAOS — combinar daños</option>'
+                            '<option value="IMAGE_ALL">IMAGE CHAOS — combinar daños</option>' +
                             '<option value="VIDEOS">VIDEO GLITCH — videos HTML5</option>' +
                             '<option value="GAMES">GAME GLITCH — juegos canvas</option>' +
                             '<option value="ALL">ALL / CHAOS — habilitar todo</option>' +
