@@ -74,3 +74,15 @@ Restore puts back the original `class` and `style` attributes saved when an elem
 ## Project status
 
 Version 1.1.0 adds IMAGE GLITCH, VIDEO GLITCH, GAME GLITCH, and ALL / CHAOS. These modes are reversible CSS presentation effects, not actual resource-byte or game-code corruption.
+
+
+## JavaScript Lab (separate userscript)
+
+The repository also includes [jsRTC-JS-LAB.user.js](https://raw.githubusercontent.com/10574084-cmd/JSRTC-USERSCRIPT-PORT/main/jsRTC-JS-LAB.user.js), a separate editor for JavaScript snippets that you own or have permission to test.
+
+- **MIX LINES:** shuffles source lines as a deliberately destructive experiment; this can break syntax and statement order.
+- **MUTATE NUMBERS:** changes selected numeric literals.
+- **RUN IN SANDBOX:** executes the edited snippet in a sandboxed worker, isolated from the current page DOM and same-origin storage, with network connections blocked and a short execution limit.
+- **RESET:** clears the editor and removes the sandbox.
+
+This lab does not intercept, rewrite, or execute the live website's JavaScript. Paste only code you are authorized to modify. The main jsRTC userscript remains a visual page/media effect tool.
