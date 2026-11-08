@@ -7,7 +7,15 @@ A browser userscript inspired by **jsRTC (Real-Time Corruptor)** by [redscientis
 - **RANDOM:** adds CSS classes found on other page elements to randomly selected elements.
 - **TILT:** temporarily rotates random page elements.
 - **PAGE GROW:** temporarily increases the minimum height and bottom padding of selected page blocks; the page can grow vertically and scroll.
-- **IMAGE GLITCH:** applies temporary visual effects to `img` and SVG image elements.
+- **IMAGE GLITCH:** applies temporary visual filters to images.
+- **PIXEL DESTROY:** replaces displayed image pixels with sampled pixel blocks.
+- **ASSET BLOCK SWAP:** rearranges patches of an image.
+- **RGB SPLIT:** offsets red and blue channels.
+- **SCANLINE SHIFT:** shifts horizontal image strips.
+- **PIXEL NOISE:** adds strong pixel-level noise.
+- **PALETTE CRUSH:** reduces images to a tiny color palette.
+- **ALPHA EATER:** removes randomly selected opaque pixels.
+- **IMAGE CHAOS:** combines several pixel-corruption algorithms.
 - **VIDEO GLITCH:** applies temporary visual effects to HTML5 `video` elements without changing playback or video files.
 - **GAME GLITCH:** applies temporary color filters to `canvas` elements without rotating or skewing the canvas, avoiding the previous whole-game stretching effect.
 - **ALL / CHAOS:** runs every supported effect mode in one blast.
@@ -33,7 +41,15 @@ You can also create a new userscript in your manager and paste the contents of `
 | RANDOM | Page elements and their CSS classes |
 | TILT | Random page elements |
 | PAGE GROW | Expands selected page blocks vertically |
-| IMAGE GLITCH | `img` and SVG image elements |
+| IMAGE GLITCH | Visual filters on image elements |
+| PIXEL DESTROY | Replaces displayed pixels with sampled blocks |
+| ASSET BLOCK SWAP | Moves image patches to other positions |
+| RGB SPLIT | Separates color channels |
+| SCANLINE SHIFT | Displaces horizontal strips |
+| PIXEL NOISE | Adds random pixel noise |
+| PALETTE CRUSH | Reduces the color palette |
+| ALPHA EATER | Makes selected pixels transparent |
+| IMAGE CHAOS | Combines the pixel algorithms |
 | VIDEO GLITCH | HTML5 `video` elements |
 | GAME GLITCH | `canvas` elements used by many browser games |
 | ALL / CHAOS | All of the modes above |
@@ -75,7 +91,7 @@ Restore puts back the original `class` and `style` attributes saved when an elem
 
 ## Project status
 
-Version 1.2.0 adds PAGE GROW and removes canvas transforms from GAME GLITCH to avoid stretching the whole game. The visual modes are reversible presentation effects, not actual resource-byte or game-code corruption. The separate JS Lab is for user-supplied test snippets only.
+Version 1.3.0 adds pixel-level image corruption modes. These replace the displayed image with a generated data image and restore the saved original source when RESTORE is pressed. This changes the page's current presentation, not the server's original asset file. Cross-origin images may be blocked by browser CORS rules, and very large images are skipped to avoid excessive memory use. Version 1.2.0 added PAGE GROW and removed canvas transforms from GAME GLITCH to avoid stretching the whole game. The separate JS Lab is for user-supplied test snippets only.
 
 
 ## JavaScript Lab (separate userscript)
