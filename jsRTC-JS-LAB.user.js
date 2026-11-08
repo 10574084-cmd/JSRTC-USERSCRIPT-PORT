@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         jsRTC - JavaScript Lab (Sandbox)
 // @namespace    https://github.com/10574084-cmd/JSRTC-USERSCRIPT-PORT
-// @version      1.0.0
+// @version      1.0.1
 // @description  Mix and test JavaScript snippets you own inside an isolated sandbox.
 // @author       10574084-cmd
 // @match        http://*/*
@@ -40,7 +40,7 @@
         <div class="row"><button id="mix">MIX LINES</button><button id="numbers">MUTATE NUMBERS</button></div>
         <div class="row"><button id="run" class="primary">RUN IN SANDBOX</button><button id="reset">RESET</button></div>
         <div class="status" id="status" role="status" aria-live="polite">Ready. The code runs in an isolated iframe, not in the current page.</div>
-        <div class="small">This lab does not patch the website's JavaScript or game logic. Mixing lines can break syntax. Sandbox network access is blocked by its content policy; do not paste secrets or code you do not trust.</div>
+        <div class="small">This lab does not patch the website's JavaScript or game logic. Mixing lines can break syntax. The worker is time-limited and network access is blocked by its content policy; do not paste secrets or code you do not trust.</div>
       </div>
     </section>`;
 
@@ -90,9 +90,23 @@
     sandbox.setAttribute('title','jsRTC isolated JavaScript sandbox');
     sandbox.style.cssText = 'position:fixed;width:1px;height:1px;left:-10px;top:-10px;border:0;opacity:0;';
     const safeCode = escapeForScript(code);
-    sandbox.srcdoc = '<!doctype html><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src \'unsafe-inline\'; connect-src \'none\'; img-src data:; style-src \'unsafe-inline\'; form-action \'none\'"><script>try{(0,eval)(' + safeCode + ')}catch(e){console.error(e)}<\\/script>';
+    sandbox.srcdoc = '<!doctype html><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src \'unsafe-inline\'; worker-src blob:; connect-src \'none\'; img-src data:; style-src \'unsafe-inline\'; form-action \'none\'"><script>let worker;addEventListener(\'message\',e=>{if(e.data===\'STOP\'&&worker)worker.terminate()});try{worker=new Worker(URL.createObjectURL(new Blob([' + safeCode + '],{type:\'text/javascript\'})));worker.onmessage=()=>parent.postMessage(\'jsrtc-worker-message\',\'*\');worker.onerror=e=>parent.postMessage(\'jsrtc-worker-error: \'+e.message,\'*\')}catch(e){parent.postMessage(\'jsrtc-worker-error: \'+e.message,\'*\')}<\\/script>';
     document.documentElement.appendChild(sandbox);
-    setStatus('Code launched in a sandboxed iframe. It cannot access this page DOM or same-origin storage.');
+    const activeFrame = sandbox;
+    const onMessage = event => {
+      if (event.source !== activeFrame.contentWindow) return;
+      if (typeof event.data === 'string' && event.data.startsWith('jsrtc-worker-error:')) setStatus(event.data);
+      else if (event.data === 'jsrtc-worker-message') setStatus('Sandbox worker sent a message.');
+    };
+    window.addEventListener('message', onMessage);
+    window.setTimeout(() => {
+      if (sandbox !== activeFrame) return;
+      try { activeFrame.contentWindow.postMessage('STOP', '*'); } catch (_) {}
+      activeFrame.remove(); sandbox = null;
+      window.removeEventListener('message', onMessage);
+      setStatus('Sandbox stopped after 2 seconds. Run again to test another version.');
+    }, 2000);
+    setStatus('Code launched in a sandboxed worker for up to 2 seconds. It cannot access this page DOM or same-origin storage.');
   });
 
   $('#reset').addEventListener('click', () => {
