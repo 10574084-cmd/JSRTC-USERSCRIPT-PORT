@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.0 - 2026-11-08
+
+- Added PAGE GROW to temporarily expand selected page blocks vertically.
+- Changed GAME GLITCH to avoid rotating or skewing the canvas, preventing whole-game stretching.
+- Updated documentation for the new page-growth mode and canvas behavior.
+
 ## JS Lab 1.0.1 - 2026-11-08
 
 - Added a separate JavaScript Lab userscript for user-owned test snippets.
