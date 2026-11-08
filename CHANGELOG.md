@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.3.0 - 2026-11-08
+
+- Added PIXEL DESTROY for sampled pixel-block corruption.
+- Added ASSET BLOCK SWAP to rearrange image patches.
+- Added RGB SPLIT to offset image color channels.
+- Added SCANLINE SHIFT to displace horizontal strips.
+- Added PIXEL NOISE, PALETTE CRUSH, and ALPHA EATER.
+- Added IMAGE CHAOS to combine pixel-level algorithms.
+- Added restoration of saved image src, srcset, and sizes attributes.
+- Documented CORS restrictions and image-size limits.
+
 ## 1.2.0 - 2026-11-08
 
 - Added PAGE GROW to temporarily expand selected page blocks vertically.
