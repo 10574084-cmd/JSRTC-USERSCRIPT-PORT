@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         jsRTC - Real-Time Corruptor (Web)
 // @namespace    https://github.com/10574084-cmd/JSRTC-USERSCRIPT-PORT
-// @version      1.0.0
-// @description  Visual web-page corruptor with RANDOM and TILT modes, manual blasts and restore.
+// @version      1.1.0
+// @description  Temporary visual corruption for webpages, images, HTML5 videos and canvas games.
 // @author       10574084-cmd
 // @match        http://*/*
 // @match        https://*/*
@@ -16,11 +16,12 @@
 (() => {
     'use strict';
 
-    const GLOBAL_KEY = '__JSRTC_WEB_PORT_100__';
+    const GLOBAL_KEY = '__JSRTC_WEB_PORT_110__';
     if (window[GLOBAL_KEY]) return;
     window[GLOBAL_KEY] = true;
 
-    const MAX_SNAPSHOTS = 2500;
+    const MAX_SNAPSHOTS = 3000;
+    const MAX_SCAN = 2500;
     const EXCLUDED_TAGS = new Set([
         'HTML', 'HEAD', 'BODY', 'SCRIPT', 'STYLE', 'LINK', 'META', 'TITLE',
         'BASE', 'NOSCRIPT', 'IFRAME', 'FRAME', 'INPUT', 'TEXTAREA', 'SELECT',
@@ -33,12 +34,12 @@
     let active = false;
     let mode = 'RANDOM';
     let intensity = 4;
-    let delay = 250;
+    let delay = 350;
     let dragging = false;
     let dragOffsetX = 0;
     let dragOffsetY = 0;
 
-    // Original attributes are stored once per element so RESTORE can put them back.
+    // Store original attributes before the first change to each element.
     const snapshots = new Map();
 
     function setStatus(message) {
@@ -46,16 +47,21 @@
         if (status) status.textContent = message;
     }
 
-    function capture(element, needsTransform) {
+    function capture(element, needsVisual = false) {
         if (!snapshots.has(element)) {
             if (snapshots.size >= MAX_SNAPSHOTS) return null;
 
             let baseTransform = null;
-            if (needsTransform) {
+            let baseFilter = null;
+
+            if (needsVisual) {
                 try {
-                    baseTransform = getComputedStyle(element).transform;
+                    const computed = getComputedStyle(element);
+                    baseTransform = computed.transform;
+                    baseFilter = computed.filter;
                 } catch (_) {
                     baseTransform = 'none';
+                    baseFilter = 'none';
                 }
             }
 
@@ -64,15 +70,19 @@
                 classValue: element.getAttribute('class'),
                 hadStyle: element.hasAttribute('style'),
                 styleValue: element.getAttribute('style'),
-                baseTransform: baseTransform
+                baseTransform,
+                baseFilter
             });
-        } else if (needsTransform) {
+        } else if (needsVisual) {
             const saved = snapshots.get(element);
-            if (saved.baseTransform === null) {
+            if (saved.baseTransform === null || saved.baseFilter === null) {
                 try {
-                    saved.baseTransform = getComputedStyle(element).transform;
+                    const computed = getComputedStyle(element);
+                    if (saved.baseTransform === null) saved.baseTransform = computed.transform;
+                    if (saved.baseFilter === null) saved.baseFilter = computed.filter;
                 } catch (_) {
-                    saved.baseTransform = 'none';
+                    if (saved.baseTransform === null) saved.baseTransform = 'none';
+                    if (saved.baseFilter === null) saved.baseFilter = 'none';
                 }
             }
         }
@@ -93,13 +103,26 @@
         const selector = requireClass ? 'body [class]' : 'body *';
         const nodes = document.querySelectorAll(selector);
         const candidates = [];
-        const scanLimit = Math.min(nodes.length, 3000);
+        const scanLimit = Math.min(nodes.length, MAX_SCAN);
 
         for (let i = 0; i < scanLimit; i++) {
             const element = nodes[i];
             if (isExcluded(element)) continue;
             if (requireClass && (!element.classList || element.classList.length === 0)) continue;
             candidates.push(element);
+        }
+
+        return candidates;
+    }
+
+    function collectMedia(selector) {
+        const nodes = document.querySelectorAll(selector);
+        const candidates = [];
+        const scanLimit = Math.min(nodes.length, MAX_SCAN);
+
+        for (let i = 0; i < scanLimit; i++) {
+            const element = nodes[i];
+            if (!isExcluded(element)) candidates.push(element);
         }
 
         return candidates;
@@ -112,10 +135,7 @@
 
     function randomClassBlast() {
         const pool = collectCandidates(true);
-        if (pool.length < 2) {
-            setStatus('No hay suficientes elementos con clases.');
-            return 0;
-        }
+        if (pool.length < 2) return 0;
 
         let changes = 0;
 
@@ -142,10 +162,7 @@
 
     function tiltBlast() {
         const pool = collectCandidates(false);
-        if (!pool.length) {
-            setStatus('No hay elementos disponibles para TILT.');
-            return 0;
-        }
+        if (!pool.length) return 0;
 
         let changes = 0;
 
@@ -173,12 +190,128 @@
         return changes;
     }
 
+    function visualFilter(saved, extraHue = 360) {
+        const base = saved.baseFilter && saved.baseFilter !== 'none'
+            ? saved.baseFilter + ' '
+            : '';
+        const hue = Math.round(Math.random() * extraHue);
+        const saturation = Math.round(100 + Math.random() * 500);
+        const contrast = Math.round(100 + Math.random() * 220);
+        const brightness = (0.55 + Math.random() * 1.2).toFixed(2);
+
+        return base +
+            'hue-rotate(' + hue + 'deg) ' +
+            'saturate(' + saturation + '%) ' +
+            'contrast(' + contrast + '%) ' +
+            'brightness(' + brightness + ')';
+    }
+
+    function applyVisualEffect(element, kind) {
+        const saved = capture(element, true);
+        if (!saved) return false;
+
+        element.style.setProperty('filter', visualFilter(saved), 'important');
+
+        if (kind === 'image') {
+            const rotate = Math.round(Math.random() * 10 - 5);
+            const scaleX = Math.random() > 0.82 ? -1 : 1;
+            const base = saved.baseTransform && saved.baseTransform !== 'none'
+                ? saved.baseTransform + ' '
+                : '';
+            element.style.setProperty(
+                'transform',
+                base + 'rotate(' + rotate + 'deg) scaleX(' + scaleX + ')',
+                'important'
+            );
+            element.style.setProperty('transform-origin', 'center center', 'important');
+            element.style.setProperty('image-rendering', 'pixelated', 'important');
+        } else if (kind === 'video') {
+            const rotate = Math.round(Math.random() * 6 - 3);
+            const base = saved.baseTransform && saved.baseTransform !== 'none'
+                ? saved.baseTransform + ' '
+                : '';
+            element.style.setProperty(
+                'transform',
+                base + 'rotate(' + rotate + 'deg)',
+                'important'
+            );
+            element.style.setProperty('transform-origin', 'center center', 'important');
+        } else if (kind === 'game') {
+            const rotate = Math.round(Math.random() * 5 - 2.5);
+            const base = saved.baseTransform && saved.baseTransform !== 'none'
+                ? saved.baseTransform + ' '
+                : '';
+            element.style.setProperty(
+                'transform',
+                base + 'skew(' + rotate + 'deg, ' + (-rotate) + 'deg)',
+                'important'
+            );
+            element.style.setProperty('transform-origin', 'center center', 'important');
+            element.style.setProperty('image-rendering', 'pixelated', 'important');
+        }
+
+        return true;
+    }
+
+    function mediaBlast(kind) {
+        let selector = 'img, svg image';
+        if (kind === 'video') selector = 'video';
+        if (kind === 'game') selector = 'canvas';
+
+        const pool = collectMedia(selector);
+        if (!pool.length) return 0;
+
+        let changes = 0;
+        const amount = Math.min(intensity, pool.length);
+
+        for (let i = 0; i < amount; i++) {
+            const target = randomItem(pool);
+            if (target && applyVisualEffect(target, kind)) changes++;
+        }
+
+        return changes;
+    }
+
     function blast() {
         if (!document.body) return;
 
-        const changes = mode === 'TILT' ? tiltBlast() : randomClassBlast();
+        let changes = 0;
+        const reports = [];
+
+        if (mode === 'RANDOM' || mode === 'ALL') {
+            const count = randomClassBlast();
+            changes += count;
+            reports.push('web ' + count);
+        }
+
+        if (mode === 'TILT' || mode === 'ALL') {
+            const count = tiltBlast();
+            changes += count;
+            reports.push('tilt ' + count);
+        }
+
+        if (mode === 'IMAGES' || mode === 'ALL') {
+            const count = mediaBlast('image');
+            changes += count;
+            reports.push('img ' + count);
+        }
+
+        if (mode === 'VIDEOS' || mode === 'ALL') {
+            const count = mediaBlast('video');
+            changes += count;
+            reports.push('video ' + count);
+        }
+
+        if (mode === 'GAMES' || mode === 'ALL') {
+            const count = mediaBlast('game');
+            changes += count;
+            reports.push('canvas ' + count);
+        }
+
         if (changes > 0) {
-            setStatus(mode + ': ' + changes + ' cambios en este golpe.');
+            setStatus((mode === 'ALL' ? 'CHAOS' : mode) + ' — ' + reports.join(' · '));
+        } else {
+            setStatus('No se encontraron elementos compatibles para ' + mode + '.');
         }
     }
 
@@ -204,7 +337,7 @@
         }
 
         snapshots.clear();
-        setStatus('Restaurado: ' + restored + ' elementos.');
+        setStatus('RESTORE: ' + restored + ' elementos devueltos a sus atributos guardados.');
         return restored;
     }
 
@@ -230,7 +363,7 @@
 
         blast();
         timer = window.setInterval(blast, delay);
-        setStatus('Auto-corruptor activo (' + delay + ' ms).');
+        setStatus('Auto-corruptor activo (' + delay + ' ms) — modo ' + mode + '.');
     }
 
     function destroy() {
@@ -255,7 +388,7 @@
         host.style.left = '16px';
         host.style.top = '16px';
         host.style.zIndex = '2147483647';
-        host.style.width = '286px';
+        host.style.width = '310px';
         host.style.maxWidth = 'calc(100vw - 24px)';
         host.style.pointerEvents = 'auto';
 
@@ -264,7 +397,7 @@
         style.textContent =
             ':host{all:initial;color-scheme:dark;font-family:Arial,Helvetica,sans-serif}' +
             '*{box-sizing:border-box}' +
-            '.panel{width:286px;max-width:calc(100vw - 24px);overflow:hidden;border:1px solid #596273;border-radius:12px;background:#171b24;color:#f4f6fb;box-shadow:0 10px 36px #0009;font:13px/1.4 Arial,Helvetica,sans-serif}' +
+            '.panel{width:310px;max-width:calc(100vw - 24px);overflow:hidden;border:1px solid #596273;border-radius:12px;background:#171b24;color:#f4f6fb;box-shadow:0 10px 36px #0009;font:13px/1.4 Arial,Helvetica,sans-serif}' +
             '.head{display:flex;align-items:center;gap:8px;padding:10px 11px;background:#252c39;border-bottom:1px solid #3c4658;cursor:move;touch-action:none;user-select:none}' +
             '.brand{font-weight:800;letter-spacing:.4px;flex:1}' +
             '.version{font-size:10px;color:#aeb8ca}' +
@@ -273,7 +406,7 @@
             'button:hover{background:#414d63}' +
             'button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #8db8ff;outline-offset:2px}' +
             '.icon{padding:2px 7px;min-width:25px}' +
-            '.body{padding:11px;display:grid;gap:10px}' +
+            '.body{padding:11px;display:grid;gap:9px;max-height:calc(100vh - 80px);overflow:auto}' +
             '.body.hidden{display:none}' +
             '.field{display:grid;gap:5px}' +
             '.fieldtop{display:flex;justify-content:space-between;gap:8px;color:#d8deea}' +
@@ -291,19 +424,26 @@
             '<section class="panel" aria-label="jsRTC control panel">' +
                 '<header class="head" id="drag">' +
                     '<span class="brand">jsRTC WEB</span>' +
-                    '<span class="version">v1.0.0</span>' +
+                    '<span class="version">v1.1.0</span>' +
                     '<button class="icon" id="minimize" type="button" title="Minimizar" aria-label="Minimizar">−</button>' +
                     '<button class="icon" id="close" type="button" title="Cerrar" aria-label="Cerrar">×</button>' +
                 '</header>' +
                 '<div class="body" id="body">' +
-                    '<label class="field"><span class="fieldtop">MODE</span>' +
-                        '<select id="mode"><option value="RANDOM">RANDOM — mezclar clases CSS</option><option value="TILT">TILT — inclinar elementos</option></select>' +
+                    '<label class="field"><span class="fieldtop">CORRUPTION MODE</span>' +
+                        '<select id="mode">' +
+                            '<option value="RANDOM">RANDOM — página y clases CSS</option>' +
+                            '<option value="TILT">TILT — inclinar elementos</option>' +
+                            '<option value="IMAGES">IMAGE GLITCH — imágenes</option>' +
+                            '<option value="VIDEOS">VIDEO GLITCH — videos HTML5</option>' +
+                            '<option value="GAMES">GAME GLITCH — juegos canvas</option>' +
+                            '<option value="ALL">ALL / CHAOS — habilitar todo</option>' +
+                        '</select>' +
                     '</label>' +
                     '<label class="field"><span class="fieldtop"><span>INTENSITY</span><span class="value" id="intensity-value">4</span></span>' +
                         '<input id="intensity" type="range" min="1" max="10" value="4">' +
                     '</label>' +
-                    '<label class="field"><span class="fieldtop"><span>DELAY</span><span class="value" id="delay-value">250 ms</span></span>' +
-                        '<input id="delay" type="range" min="100" max="2000" step="50" value="250">' +
+                    '<label class="field"><span class="fieldtop"><span>DELAY</span><span class="value" id="delay-value">350 ms</span></span>' +
+                        '<input id="delay" type="range" min="150" max="2500" step="50" value="350">' +
                     '</label>' +
                     '<div class="buttons">' +
                         '<button class="primary" id="start" type="button">START AUTO</button>' +
@@ -311,7 +451,7 @@
                         '<button class="restore" id="restore" type="button">RESTORE ORIGINAL PAGE</button>' +
                     '</div>' +
                     '<div class="status" id="status" role="status" aria-live="polite">Listo. Elige un modo y pulsa BLAST ONCE.</div>' +
-                    '<div class="note">Los cambios son temporales mientras esta página siga abierta. RESTORE revierte los atributos modificados.</div>' +
+                    '<div class="note">Efectos visuales locales: no modifica bytes originales, archivos, videos ni código del juego. RESTORE recupera los atributos guardados.</div>' +
                 '</div>' +
             '</section>';
 
@@ -332,7 +472,7 @@
             stop();
             restoreAll();
             mode = modeInput.value;
-            setStatus('Modo cambiado a ' + mode + '. Página limpia.');
+            setStatus('Modo cambiado a ' + mode + '. Página restaurada antes del nuevo modo.');
         });
 
         intensityInput.addEventListener('input', () => {
