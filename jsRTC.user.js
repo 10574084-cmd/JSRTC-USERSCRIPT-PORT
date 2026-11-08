@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         jsRTC - Real-Time Corruptor (Web)
 // @namespace    https://github.com/10574084-cmd/JSRTC-USERSCRIPT-PORT
-// @version      1.1.0
-// @description  Temporary visual corruption for webpages, images, HTML5 videos and canvas games.
+// @version      1.2.0
+// @description  Reversible visual effects for webpages, media and canvas games, plus page growth.
 // @author       10574084-cmd
 // @match        http://*/*
 // @match        https://*/*
@@ -237,17 +237,7 @@
             );
             element.style.setProperty('transform-origin', 'center center', 'important');
         } else if (kind === 'game') {
-            const rotate = Math.round(Math.random() * 5 - 2.5);
-            const base = saved.baseTransform && saved.baseTransform !== 'none'
-                ? saved.baseTransform + ' '
-                : '';
-            element.style.setProperty(
-                'transform',
-                base + 'skew(' + rotate + 'deg, ' + (-rotate) + 'deg)',
-                'important'
-            );
-            element.style.setProperty('transform-origin', 'center center', 'important');
-            element.style.setProperty('image-rendering', 'pixelated', 'important');
+            // Keep the canvas geometry unchanged: only apply a temporary filter.
         }
 
         return true;
@@ -272,11 +262,35 @@
         return changes;
     }
 
+    function growBlast() {
+        const pool = collectCandidates(false);
+        if (!pool.length) return 0;
+        let changes = 0;
+        for (let i = 0; i < Math.min(intensity, pool.length); i++) {
+            const target = randomItem(pool);
+            if (!target) continue;
+            const rect = target.getBoundingClientRect();
+            if (rect.height < 8 || rect.height > 1800) continue;
+            if (!capture(target, false)) continue;
+            const nextHeight = Math.min(2400, Math.ceil(rect.height * (1.12 + Math.random() * 0.25)));
+            target.style.setProperty('min-height', nextHeight + 'px', 'important');
+            target.style.setProperty('padding-bottom', Math.min(48, 8 + Math.round(Math.random() * 32)) + 'px', 'important');
+            changes++;
+        }
+        return changes;
+    }
+
     function blast() {
         if (!document.body) return;
 
         let changes = 0;
         const reports = [];
+
+        if (mode === 'GROW' || mode === 'ALL') {
+            const count = growBlast();
+            changes += count;
+            reports.push('grow ' + count);
+        }
 
         if (mode === 'RANDOM' || mode === 'ALL') {
             const count = randomClassBlast();
@@ -424,7 +438,7 @@
             '<section class="panel" aria-label="jsRTC control panel">' +
                 '<header class="head" id="drag">' +
                     '<span class="brand">jsRTC WEB</span>' +
-                    '<span class="version">v1.1.0</span>' +
+                    '<span class="version">v1.2.0</span>' +
                     '<button class="icon" id="minimize" type="button" title="Minimizar" aria-label="Minimizar">−</button>' +
                     '<button class="icon" id="close" type="button" title="Cerrar" aria-label="Cerrar">×</button>' +
                 '</header>' +
@@ -433,6 +447,7 @@
                         '<select id="mode">' +
                             '<option value="RANDOM">RANDOM — página y clases CSS</option>' +
                             '<option value="TILT">TILT — inclinar elementos</option>' +
+                            '<option value="GROW">PAGE GROW — expandir bloques</option>' +
                             '<option value="IMAGES">IMAGE GLITCH — imágenes</option>' +
                             '<option value="VIDEOS">VIDEO GLITCH — videos HTML5</option>' +
                             '<option value="GAMES">GAME GLITCH — juegos canvas</option>' +
@@ -451,7 +466,7 @@
                         '<button class="restore" id="restore" type="button">RESTORE ORIGINAL PAGE</button>' +
                     '</div>' +
                     '<div class="status" id="status" role="status" aria-live="polite">Listo. Elige un modo y pulsa BLAST ONCE.</div>' +
-                    '<div class="note">Efectos visuales locales: no modifica bytes originales, archivos, videos ni código del juego. RESTORE recupera los atributos guardados.</div>' +
+                    '<div class="note">Efectos visuales locales: no modifica bytes originales ni código del juego. GAME GLITCH no deforma el canvas. RESTORE recupera los atributos guardados.</div>' +
                 '</div>' +
             '</section>';
 
