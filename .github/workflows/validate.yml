@@ -1,14 +1,16 @@
-name: Validate userscript
+name: Validate userscripts
 
 on:
   push:
     branches: [main]
     paths:
       - "jsRTC.user.js"
+      - "jsRTC-JS-LAB.user.js"
       - ".github/workflows/validate.yml"
   pull_request:
     paths:
       - "jsRTC.user.js"
+      - "jsRTC-JS-LAB.user.js"
       - ".github/workflows/validate.yml"
   workflow_dispatch:
 
@@ -26,5 +28,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Validate userscript syntax
+      - name: Validate main userscript syntax
         run: node --check jsRTC.user.js
+      - name: Validate JavaScript Lab syntax
+        run: node --check jsRTC-JS-LAB.user.js
