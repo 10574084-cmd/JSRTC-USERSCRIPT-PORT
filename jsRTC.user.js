@@ -16,6 +16,9 @@
 (() => {
     'use strict';
 
+    // Paste your deployed Cloudflare Worker URL here. Leave empty to disable the proxy.
+    const PROXY_URL = '';
+
     const GLOBAL_KEY = '__JSRTC_WEB_PORT_140__';
     if (window[GLOBAL_KEY]) return;
     window[GLOBAL_KEY] = true;
@@ -38,7 +41,17 @@
     let dragging = false;
     let dragOffsetX = 0;
     let dragOffsetY = 0;
-    let proxyEndpoint = '';
+    let proxyEndpoint = PROXY_URL.trim();
+    if (proxyEndpoint) {
+        try {
+            const parsedProxy = new URL(proxyEndpoint);
+            if (parsedProxy.protocol !== 'https:') throw new Error('HTTPS required');
+            proxyEndpoint = parsedProxy.href;
+        } catch (_) {
+            console.warn('[jsRTC] Invalid PROXY_URL. Cloudflare proxy disabled; use a valid HTTPS Worker URL.');
+            proxyEndpoint = '';
+        }
+    }
 
     // Store original attributes before the first change to each element.
     const snapshots = new Map();
@@ -643,9 +656,6 @@
                             '<option value="ALL">ALL / CHAOS — habilitar todo</option>' +
                         '</select>' +
                     '</label>' +
-                    '<label class="field"><span class="fieldtop">CLOUDFLARE IMAGE PROXY URL</span>' +
-                        '<input id="proxy" type="url" placeholder="https://your-worker.workers.dev/" autocomplete="url">' +
-                    '</label>' +
                     '<label class="field"><span class="fieldtop"><span>INTENSITY</span><span class="value" id="intensity-value">4</span></span>' +
                         '<input id="intensity" type="range" min="1" max="10" value="4">' +
                     '</label>' +
@@ -670,20 +680,10 @@
 
         const $ = (selector) => ui.querySelector(selector);
         const modeInput = $('#mode');
-        const proxyInput = $('#proxy');
         const intensityInput = $('#intensity');
         const delayInput = $('#delay');
         const startButton = $('#start');
         const header = $('#drag');
-
-        proxyInput.addEventListener('change', () => {
-            try {
-                const value = proxyInput.value.trim();
-                proxyEndpoint = value ? new URL(value).href : '';
-                if (proxyEndpoint && new URL(proxyEndpoint).protocol !== 'https:') throw new Error('HTTPS required');
-                setStatus(proxyEndpoint ? 'Proxy activo: las imágenes se obtendrán mediante tu Worker.' : 'Proxy desactivado.');
-            } catch (_) { proxyEndpoint = ''; proxyInput.value = ''; setStatus('URL inválida: usa la URL HTTPS del Worker.'); }
-        });
 
         modeInput.addEventListener('change', () => {
             stop();
