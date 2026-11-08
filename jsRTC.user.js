@@ -286,9 +286,10 @@
 
         try {
             let bitmap = null;
-            if (proxyEndpoint) {
+            const imageUrl = new URL(image.currentSrc || image.src, location.href);
+            if (proxyEndpoint && imageUrl.protocol === 'https:' && imageUrl.origin !== location.origin) {
                 const proxyUrl = new URL(proxyEndpoint);
-                proxyUrl.searchParams.set('url', image.currentSrc || image.src);
+                proxyUrl.searchParams.set('url', imageUrl.href);
                 const response = await fetch(proxyUrl.href, { credentials: 'omit' });
                 if (!response.ok) throw new Error('Proxy HTTP ' + response.status);
                 bitmap = await createImageBitmap(await response.blob());
