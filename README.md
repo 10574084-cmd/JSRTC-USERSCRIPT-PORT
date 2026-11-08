@@ -6,9 +6,10 @@ A browser userscript inspired by **jsRTC (Real-Time Corruptor)** by [redscientis
 
 - **RANDOM:** adds CSS classes found on other page elements to randomly selected elements.
 - **TILT:** temporarily rotates random page elements.
+- **PAGE GROW:** temporarily increases the minimum height and bottom padding of selected page blocks; the page can grow vertically and scroll.
 - **IMAGE GLITCH:** applies temporary visual effects to `img` and SVG image elements.
 - **VIDEO GLITCH:** applies temporary visual effects to HTML5 `video` elements without changing playback or video files.
-- **GAME GLITCH:** applies temporary visual effects to `canvas` elements, including many HTML5 game render surfaces.
+- **GAME GLITCH:** applies temporary color filters to `canvas` elements without rotating or skewing the canvas, avoiding the previous whole-game stretching effect.
 - **ALL / CHAOS:** runs every supported effect mode in one blast.
 - Adjustable intensity and automatic-corruption delay.
 - Manual **BLAST ONCE**, automatic mode, and **RESTORE ORIGINAL PAGE**.
@@ -31,6 +32,7 @@ You can also create a new userscript in your manager and paste the contents of `
 |---|---|
 | RANDOM | Page elements and their CSS classes |
 | TILT | Random page elements |
+| PAGE GROW | Expands selected page blocks vertically |
 | IMAGE GLITCH | `img` and SVG image elements |
 | VIDEO GLITCH | HTML5 `video` elements |
 | GAME GLITCH | `canvas` elements used by many browser games |
@@ -73,7 +75,7 @@ Restore puts back the original `class` and `style` attributes saved when an elem
 
 ## Project status
 
-Version 1.1.0 adds IMAGE GLITCH, VIDEO GLITCH, GAME GLITCH, and ALL / CHAOS. These modes are reversible CSS presentation effects, not actual resource-byte or game-code corruption.
+Version 1.2.0 adds PAGE GROW and removes canvas transforms from GAME GLITCH to avoid stretching the whole game. The visual modes are reversible presentation effects, not actual resource-byte or game-code corruption. The separate JS Lab is for user-supplied test snippets only.
 
 
 ## JavaScript Lab (separate userscript)
