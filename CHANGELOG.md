@@ -1,5 +1,12 @@
 # Changelog
 
+## JS Lab 1.0.1 - 2026-11-08
+
+- Added a separate JavaScript Lab userscript for user-owned test snippets.
+- Added line mixing and numeric-literal mutation controls.
+- Runs snippets in a sandboxed worker with blocked network access and a short execution limit.
+- Clarified that the lab does not patch live website scripts.
+
 ## 1.1.0 - 2026-11-08
 
 - Added IMAGE GLITCH for image and SVG image elements.
