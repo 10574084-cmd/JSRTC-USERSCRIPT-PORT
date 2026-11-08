@@ -264,7 +264,7 @@
         return changes;
     }
 
-    function corruptImagePixels(image, algorithm) {
+    async function corruptImagePixels(image, algorithm) {
         if (!image || !image.complete || !image.naturalWidth || !image.naturalHeight) return false;
         if (!imageSources.has(image)) {
             imageSources.set(image, {
@@ -399,7 +399,7 @@
         }
     }
 
-    function imagePixelBlast(algorithm) {
+    async function imagePixelBlast(algorithm) {
         const pool = collectMedia('img');
         if (!pool.length) return 0;
         let changed = 0;
@@ -410,7 +410,7 @@
             if (item) targets.add(item);
         }
         for (const image of targets) {
-            if (corruptImagePixels(image, algorithm)) changed++;
+            if (await corruptImagePixels(image, algorithm)) changed++;
         }
         return changed;
     }
@@ -433,7 +433,7 @@
         return changes;
     }
 
-    function blast() {
+    async function blast() {
         if (!document.body) return;
 
         let changes = 0;
@@ -441,7 +441,7 @@
 
         if (mode === 'PIXEL' || mode === 'BLOCKS' || mode === 'RGB' || mode === 'ROWS' || mode === 'NOISE' || mode === 'PALETTE' || mode === 'ALPHA' || mode === 'IMAGE_ALL' || mode === 'ALL') {
             const algo = mode === 'ALL' ? 'IMAGE_ALL' : mode;
-            const count = imagePixelBlast(algo);
+            const count = await imagePixelBlast(algo);
             changes += count;
             reports.push('pixel assets ' + count);
         }
