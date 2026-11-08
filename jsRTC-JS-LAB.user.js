@@ -90,7 +90,7 @@
     sandbox.setAttribute('title','jsRTC isolated JavaScript sandbox');
     sandbox.style.cssText = 'position:fixed;width:1px;height:1px;left:-10px;top:-10px;border:0;opacity:0;';
     const safeCode = escapeForScript(code);
-    sandbox.srcdoc = '<!doctype html><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src \'unsafe-inline\'; worker-src blob:; connect-src \'none\'; img-src data:; style-src \'unsafe-inline\'; form-action \'none\'"><script>let worker;addEventListener(\'message\',e=>{if(e.data===\'STOP\'&&worker)worker.terminate()});try{worker=new Worker(URL.createObjectURL(new Blob([' + safeCode + '],{type:\'text/javascript\'})));worker.onmessage=()=>parent.postMessage(\'jsrtc-worker-message\',\'*\');worker.onerror=e=>parent.postMessage(\'jsrtc-worker-error: \'+e.message,\'*\')}catch(e){parent.postMessage(\'jsrtc-worker-error: \'+e.message,\'*\')}<\\/script>';
+    sandbox.srcdoc = '<!doctype html><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src \'unsafe-inline\'; worker-src blob:; connect-src \'none\'; img-src data:; style-src \'unsafe-inline\'; form-action \'none\'"><script>let worker;addEventListener(\'message\',e=>{if(e.data===\'STOP\'&&worker)worker.terminate()});try{worker=new Worker(URL.createObjectURL(new Blob([' + safeCode + '],{type:\'text/javascript\'})));worker.onmessage=()=>parent.postMessage(\'jsrtc-worker-message\',\'*\');worker.onerror=e=>parent.postMessage(\'jsrtc-worker-error: \'+e.message,\'*\')}catch(e){parent.postMessage(\'jsrtc-worker-error: \'+e.message,\'*\')}<\/script>';
     document.documentElement.appendChild(sandbox);
     const activeFrame = sandbox;
     const onMessage = event => {
